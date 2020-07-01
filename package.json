@@ -1332,6 +1332,12 @@
                     "description": "Determines the format of roku hyperlinks in the output panel. For example, given pkg:/components/KeyLogTester.brs(24:0)  The hyperlink will appear as follows: \n  Full pkg:/components/KeyLogTester.brs(24:0) [INFO] retrieving videos for category id 23 \n Filename KeyLogTester.brs(24) [INFO] retrieving videos for category id 23 \n FilenameAndFunction KeyLogTester.getVideos(24) [INFO] retrieving videos for category id 23 \n Short #1 [INFO] retrieving videos for category id 23 \n  Hidden [INFO] retrieving videos for category id 23",
                     "scope": "resource"
                 },
+                "brightscript.output.maxLengthForLogParse": {
+                    "type": "number",
+                    "default": 10000,
+                    "description": "Determines the maximum character limit for parsing a received log line for hyperlinks. A line with a length greater than this value will not be parsed.\n  Set to lower values if you run into high CPU load when debugging an app with large print outputs.",
+                    "scope": "resource"
+                },
                 "brightscript.deviceDiscovery.showInfoMessages": {
                     "type": "boolean",
                     "default": true,

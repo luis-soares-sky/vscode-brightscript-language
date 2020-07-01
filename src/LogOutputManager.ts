@@ -98,6 +98,7 @@ export class LogOutputManager {
     public isClearingOutputOnLaunch: boolean;
     public isClearingConsoleOnChannelStart: boolean;
     public hyperlinkFormat: string;
+    public maxLengthForLogParse: number;
     private collection: DiagnosticCollection;
     private outputChannel: vscode.OutputChannel;
     private docLinkProvider: LogDocumentLinkProvider;
@@ -119,6 +120,7 @@ export class LogOutputManager {
         this.isClearingOutputOnLaunch = config?.output?.clearOnLaunch === false ? false : true;
         this.isClearingConsoleOnChannelStart = config?.output?.clearConsoleOnChannelStart === false ? false : true;
         this.hyperlinkFormat = (config.output || {}).hyperlinkFormat;
+        this.maxLengthForLogParse = typeof config?.output?.maxLengthForLogParse === 'number' ? config.output.maxLengthForLogParse : 10000;
     }
 
     public setLaunchConfig(launchConfig: BrightScriptLaunchConfiguration) {
@@ -256,18 +258,23 @@ export class LogOutputManager {
         const logLineNumber = this.displayedLogLines.length;
         if (this.matchesFilter(logLine)) {
             this.displayedLogLines.push(logLine);
-            let match = this.pkgRegex.exec(logLine.text);
-            if (match) {
-                const pkgPath = match[1];
-                const lineNumber = Number(match[2]);
-                const filename = this.getFilename(pkgPath);
-                const extension = pkgPath.substring(pkgPath.length - 4);
-                let customText = this.getCustomLogText(pkgPath, filename, extension, Number(lineNumber), logLineNumber);
-                const customLink = new CustomDocumentLink(logLineNumber, match.index, customText.length, pkgPath, lineNumber, filename);
-                this.docLinkProvider.addCustomLink(customLink);
-                let logText = logLine.text.substring(0, match.index) + customText + logLine.text.substring(match.index + match[0].length);
-                this.outputChannel.appendLine(logText);
-            } else {
+            if (logLine.text.length <= this.maxLengthForLogParse) {
+                let match = this.pkgRegex.exec(logLine.text);
+                if (match) {
+                    const pkgPath = match[1];
+                    const lineNumber = Number(match[2]);
+                    const filename = this.getFilename(pkgPath);
+                    const extension = pkgPath.substring(pkgPath.length - 4);
+                    let customText = this.getCustomLogText(pkgPath, filename, extension, Number(lineNumber), logLineNumber);
+                    const customLink = new CustomDocumentLink(logLineNumber, match.index, customText.length, pkgPath, lineNumber, filename);
+                    this.docLinkProvider.addCustomLink(customLink);
+                    let logText = logLine.text.substring(0, match.index) + customText + logLine.text.substring(match.index + match[0].length);
+                    this.outputChannel.appendLine(logText);
+                } else {
+                    this.outputChannel.appendLine(logLine.text);
+                }
+            }
+            else {
                 this.outputChannel.appendLine(logLine.text);
             }
         }
